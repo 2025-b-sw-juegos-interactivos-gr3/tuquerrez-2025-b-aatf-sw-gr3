@@ -1,0 +1,17 @@
+{
+  "name": "babylonjs-local-playground",
+  "version": "1.0.0",
+  "description": "A local playground for Babylon.js projects.",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "live-server ."
+  },
+  "dependencies": {
+    "babylonjs": "^5.0.0"
+  },
+  "devDependencies": {
+    "live-server": "^1.2.0"
+  },
+  "author": "",
+  "license": "MIT"
+}

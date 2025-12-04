@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explorador en Marte - Babylon.js</title>
+    <style>
+        html, body {
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        #renderCanvas {
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+        }
+
+        #ui-overlay {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 100;
+        }
+
+        #ui-overlay h2 {
+            margin: 0 0 10px 0;
+            font-size: 18px;
+            color: #00ff88;
+        }
+
+        #status {
+            color: #ffcc00;
+            font-weight: bold;
+        }
+
+        .controls {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #cccccc;
+        }
+
+        #score {
+            color: #00ff88;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        #nivel {
+            color: #00ff88;
+            font-size: 16px;
+            font-weight: bold;
+            text-shadow: 0 0 10px #00ff88;
+        }
+
+        .colision-warning {
+            animation: shake 0.3s;
+            border: 2px solid red !important;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+    </style>
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <script src="https://cdn.babylonjs.com/materialsLibrary/babylonjs.materials.min.js"></script>
+</head>
+<body>
+    <canvas id="renderCanvas"></canvas>
+    
+    <div id="ui-overlay">
+        <h2> Explorador en Marte</h2>
+        <div>Estado: <span id="status">Buscar componente</span></div>
+        <div>Entregas: <span id="score">0</span> | Nivel: <span id="nivel">1</span></div>
+        <div class="controls">
+            <p><strong>Controles:</strong></p>
+            <p> WASD - Mover robot</p>
+            <p> ESPACIO / E - Recoger/Entregar</p>
+            <p> Mouse - Rotar cámara</p>
+        </div>
+    </div>
+
+    <script src="js/game.js"></script>
+</body>
+</html>

@@ -16,11 +16,15 @@ const nivelElement = document.getElementById("nivel");
 
 // Constantes de juego
 const VELOCIDAD_ROVER_BASE = 0.1;
+const VELOCIDAD_ROTACION = 2.5;
+const ACELERACION = 0.4;
+const DESACELERACION = 0.3;
 const DISTANCIA_INTERACCION = 2.5;
-const OFFSET_MUESTRA = new BABYLON.Vector3(0, 4, 5); // Al lado del rover
+const OFFSET_MUESTRA = new BABYLON.Vector3(3, 4, -5);
 
 // Variables de dificultad
 let velocidadRover = VELOCIDAD_ROVER_BASE;
+let velocidadActual = 0;
 let nivelDificultad = 1;
 let muestrasParaNivel = 1;
 let obstaculos = [];
@@ -37,10 +41,11 @@ const createScene = function () {
 
     console.log("🚀 Sistema inicializado");
 
-    // ===== CÁMARA (Sistema de seguimiento tercera persona) =====
-    const camera = new BABYLON.FreeCamera("camera", new BABYLON.Vector3(0, 3.5, 5), scene);
+    // ===== CÁMARA (Sistema de seguimiento tercera persona - DETRÁS DEL ROVER) =====
+    const camera = new BABYLON.FreeCamera("camera", new BABYLON.Vector3(0, 5, 7), scene);
     // No attachControl para control manual de la cámara
     camera.checkCollisions = false;
+    camera.setTarget(new BABYLON.Vector3(0, 1, 0));
 
     // ===== ILUMINACIÓN MARCIANA =====
     const light = new BABYLON.HemisphericLight(
@@ -137,7 +142,7 @@ const createScene = function () {
         roverVisualRoot.rotationQuaternion = null;
         roverVisualRoot.position = BABYLON.Vector3.Zero();
         roverVisualRoot.rotation = initialRotation.clone();
-        roverVisualRoot.rotation.y = Math.PI;
+        roverVisualRoot.rotation.y = 0;
 
         meshes.forEach(mesh => {
             mesh.setParent(roverVisualRoot, true);
@@ -407,47 +412,40 @@ const createScene = function () {
     });
 
     // ===== GAME LOOP (MOVIMIENTO) =====
-    const movimiento = new BABYLON.Vector3();
     scene.onBeforeRenderObservable.add(() => {
         if (!rover) return;
 
         const dt = engine.getDeltaTime() / 1000;
 
-        // Calcular entrada de movimiento
-        let forward = 0, right = 0;
-        if (inputMap['w']) forward += 1;
-        if (inputMap['a']) right -= 1;
-        if (inputMap['d']) right += 1;
-
-        const moving = (forward !== 0 || right !== 0);
+        let forward = 0, rotation = 0;
+        if (inputMap['w']) forward -= 1;
+        if (inputMap['s']) forward += 1;
+        if (inputMap['a']) rotation -= 1;
+        if (inputMap['d']) rotation += 1;
 
         const posicionAnterior = rover.position.clone();
 
-        if (moving) {
-            // Vector de entrada en espacio local del rover (Z = adelante)
-            const localInput = new BABYLON.Vector3(right, 0, forward);
-            // Rotar ese vector por el yaw actual para obtener la dirección en mundo
-            const rotMat = BABYLON.Matrix.RotationY(rover.rotation.y);
-            let worldDir = BABYLON.Vector3.TransformCoordinates(localInput, rotMat);
-            const len = worldDir.length();
-            if (len > 0) worldDir.scaleInPlace(1 / len);
-
-            // Mover el rover en la dirección transformada
-            const delta = worldDir.scale(velocidadRover);
-            rover.position.addInPlace(delta);
-
-            // Calcular ángulo deseado (yaw) hacia la dirección de movimiento
-            const desiredYaw = Math.atan2(worldDir.x, worldDir.z);
-            // Interpolar rotación suavemente hacia la dirección de movimiento
-            const currentYaw = rover.rotation.y;
-            let diff = desiredYaw - currentYaw;
-            // Normalizar la diferencia al rango [-PI, PI]
-            while (diff > Math.PI) diff -= 2 * Math.PI;
-            while (diff < -Math.PI) diff += 2 * Math.PI;
-            const maxTurnSpeed = 8.0 * dt; // rad/frame
-            const turn = Math.max(-maxTurnSpeed, Math.min(maxTurnSpeed, diff));
-            rover.rotation.y += turn;
+        if (forward !== 0) {
+            const velocidadObjetivo = forward * velocidadRover;
+            const factorAceleracion = forward * velocidadActual >= 0 ? ACELERACION : DESACELERACION * 2;
+            velocidadActual += (velocidadObjetivo - velocidadActual) * factorAceleracion * dt * 60;
+        } else {
+            velocidadActual *= Math.pow(1 - DESACELERACION, dt * 60);
+            if (Math.abs(velocidadActual) < 0.001) velocidadActual = 0;
         }
+
+        if (rotation !== 0) {
+            rover.rotation.y += rotation * VELOCIDAD_ROTACION * dt;
+        }
+
+        if (Math.abs(velocidadActual) > 0.001) {
+            const yaw = rover.rotation.y;
+            const forwardDir = new BABYLON.Vector3(Math.sin(yaw), 0, Math.cos(yaw));
+            const delta = forwardDir.scale(velocidadActual);
+            rover.position.addInPlace(delta);
+        }
+
+        const moving = Math.abs(velocidadActual) > 0.01;
 
         // Verificar colisiones con obstáculos (cráteres)
         let hayColision = false;
@@ -481,14 +479,19 @@ const createScene = function () {
             }
         }
 
-        // Control de animación de caminar
+        if (hayColision) {
+            velocidadActual = 0;
+        }
+
         if (rover.walkAnimation) {
             if (moving && !hayColision) {
                 if (!rover.walkAnimation.isPlaying) {
                     rover.walkAnimation.play(true);
                 }
+                const direccionMovimiento = Math.sign(velocidadActual);
                 const invert = rover.metadata?.invertWalk ? -1 : 1;
-                rover.walkAnimation.speedRatio = invert * (velocidadRover / VELOCIDAD_ROVER_BASE);
+                const velocidadNormalizada = Math.abs(velocidadActual) / velocidadRover;
+                rover.walkAnimation.speedRatio = invert * direccionMovimiento * Math.max(0.3, velocidadNormalizada);
             } else {
                 if (rover.walkAnimation.isPlaying) {
                     rover.walkAnimation.stop();
@@ -532,10 +535,10 @@ const createScene = function () {
             }
         });
 
-        // ===== SISTEMA DE CÁMARA DE SEGUIMIENTO (copiado de main.js) =====
-        const camDistance = 7.0; // distancia atrás
+        // ===== SISTEMA DE CÁMARA DE SEGUIMIENTO (detrás del rover) =====
+        const camDistance = -7.0; // distancia detrás del rover
         const camHeight = 5; // altura sobre el suelo
-        const lookHeight = 1.0; // punto donde mira
+        const lookHeight = 1.0; // punto donde mira en el rover
 
         // Dirección "atrás" basada en la rotación Y del rover
         const yaw = rover.rotation.y;
@@ -1011,4 +1014,4 @@ window.addEventListener("resize", function () {
 });
 
 console.log("🚀 Explorador de Marte iniciado");
-console.log("🪨 Recolecta muestras de rocas y llévalas a la base")
+console.log("🪨 Recolecta muestras de rocas y llévalas a la base");

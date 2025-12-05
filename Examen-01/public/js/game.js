@@ -20,7 +20,7 @@ const VELOCIDAD_ROTACION = 2.5;
 const ACELERACION = 0.4;
 const DESACELERACION = 0.3;
 const DISTANCIA_INTERACCION = 2.5;
-const OFFSET_MUESTRA = new BABYLON.Vector3(3, 4, -5);
+const OFFSET_MUESTRA = new BABYLON.Vector3(0, -0.5, -0.8);
 
 // Variables de dificultad
 let velocidadRover = VELOCIDAD_ROVER_BASE;
@@ -157,8 +157,8 @@ const createScene = function () {
 
         rover = roverContainer;
         
-        rover.scaling = new BABYLON.Vector3(0.18, 0.18, 0.18);
-        rover.position.y = 0;
+        rover.scaling = new BABYLON.Vector3(1, 1, 1);
+        rover.position.y = 1;
         rover.rotation.y = 0;
         rover.metadata = rover.metadata || {};
         rover.metadata.visualRoot = roverVisualRoot;
@@ -341,7 +341,7 @@ const createScene = function () {
                             muestra.metadata.scalingOriginal = muestra.scaling.clone();
 
                         // ==== CAMBIAR TAMAÑO CUANDO LA RECOGE ====
-                        muestra.scaling = new BABYLON.Vector3(1.8, 1.8, 1.8); // <<--- AJUSTA EL TAMAÑO AQUÍ
+                        muestra.scaling = new BABYLON.Vector3(0.4, 0.4, 0.4); // <<--- AJUSTA EL TAMAÑO AQUÍ
 
                         muestra.parent = rover;
                         muestra.position = OFFSET_MUESTRA.clone();

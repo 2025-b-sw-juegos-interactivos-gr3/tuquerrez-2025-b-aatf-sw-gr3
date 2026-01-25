@@ -2,7 +2,6 @@
   "name": "the-vanishing-slice",
   "version": "1.0.0",
   "description": "Vertical Slice - The Vanishing RPG (Examen Final)",
-  "main": "src/main.js",
   "scripts": {
     "start": "parcel public/index.html --open",
     "build": "parcel build public/index.html"
@@ -13,7 +12,7 @@
     "game",
     "vertical-slice"
   ],
-  "author": "Tu Nombre",
+  "author": "Atik T",
   "license": "MIT",
   "dependencies": {
     "@babylonjs/core": "^6.40.0",

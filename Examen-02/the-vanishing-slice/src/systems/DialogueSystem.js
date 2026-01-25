@@ -145,11 +145,19 @@ export class DialogueSystem {
         this.textElement.textContent = '';
         let index = 0;
 
+        // Filtrar caracteres no válidos y permitir caracteres con tildes
+        const sanitizedText = text.normalize('NFC');
+
+        // Cancelar cualquier diálogo en curso antes de iniciar uno nuevo
+        if (this.typeWriterTimeout) {
+            clearTimeout(this.typeWriterTimeout);
+        }
+
         const type = () => {
-            if (index < text.length) {
-                this.textElement.textContent += text.charAt(index);
+            if (index < sanitizedText.length) {
+                this.textElement.textContent += sanitizedText.charAt(index);
                 index++;
-                setTimeout(type, speed);
+                this.typeWriterTimeout = setTimeout(type, speed);
             }
         };
 

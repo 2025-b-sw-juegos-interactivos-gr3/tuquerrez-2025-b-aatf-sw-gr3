@@ -95,7 +95,7 @@ function createScene() {
     // ===== CÁMARA FPS =====
     camera = new BABYLON.UniversalCamera(
         'playerCamera',
-        new BABYLON.Vector3(0, 1.6, -4.5), // Posición inicial cerca de la cama
+        new BABYLON.Vector3(2.5, 1.8, -4.5), // Posición inicial cerca de la cama
         newScene
     );
     camera.setTarget(new BABYLON.Vector3(0, 1.6, 0));

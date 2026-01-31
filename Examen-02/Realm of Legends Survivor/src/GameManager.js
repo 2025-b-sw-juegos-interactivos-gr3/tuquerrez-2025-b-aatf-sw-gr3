@@ -1,4 +1,5 @@
 import { Vector3 } from "@babylonjs/core";
+import { ModelCache } from "./ModelCache.js";
 import { Player } from "./Player.js";
 import { EnemyPool } from "./EnemyPool.js";
 import { WaveManager } from "./WaveManager.js";
@@ -6,13 +7,18 @@ import { WaveManager } from "./WaveManager.js";
 /**
  * GameManager – Singleton (GDD §VII.2)
  * Estados: PLAYING | PAUSED | GAMEOVER
- * Gestiona: spawn, daño por contacto, score, cámara, pausa para LevelUp.
+ *
+ * getInstance() es async porque necesita await ModelCache.init()
+ * antes de construir Player y EnemyPool (ambos clonan desde el cache).
  */
 export class GameManager {
   static instance = null;
 
-  static getInstance(scene, camera, hud) {
+  static async getInstance(scene, camera, hud) {
     if (!GameManager.instance) {
+      // ─── Cargar modelos .glb ANTES de crear cualquier personaje ───
+      await ModelCache.getInstance().init(scene);
+
       GameManager.instance = new GameManager(scene, camera, hud);
     }
     return GameManager.instance;

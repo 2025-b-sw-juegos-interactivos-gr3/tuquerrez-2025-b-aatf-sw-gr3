@@ -32,7 +32,7 @@ export class GroundSystem {
 
     // Si hay textura disponible, usarla; sino usar color sólido
     try {
-      const tex = new Texture("/assets/textures/ground.png", scene);
+      const tex = new Texture("/assets/textures/ground.jpg", scene);
       tex.uScale = 8; // repetir la textura 8x en cada eje
       tex.vScale = 8;
       mat.diffuseTexture = tex;
